@@ -2,7 +2,7 @@
 /// <reference types="./frameworkmessages" />
 /// <reference types="./youtubemessages" />
 
-module Kosy.Integration.GoogleDrive {
+module Kosy.Integration.Youtube {
     class StartupParameters { }
 
     export class App {
@@ -33,7 +33,7 @@ module Kosy.Integration.GoogleDrive {
 
         //Messages that flow to the main app get processed here
         //Note: For larger apps a separate message processor class might be required, but for this perticular app, that might be overengineering
-        public receiveMessage(message: KosyToIntegrationMessage<YoutubeIntegrationMessage>) {
+        public receiveMessage(message: VideoMessage | KosyToIntegrationMessage<YoutubeIntegrationMessage>) {
             switch (message.type) {
                 case "receive-initial-info":
                     //Sets up the initial information, for the youtube integration, it's important to know who started it
@@ -75,8 +75,6 @@ module Kosy.Integration.GoogleDrive {
                 let urlParts = url.split('=');
                 let videoId = urlParts[1];
 
-                this.initPlayer(videoId);
-
                 this.sendMessage({
                     type: "relay-message",
                     payload: { type: "video-picked", payload: videoId }
@@ -85,49 +83,93 @@ module Kosy.Integration.GoogleDrive {
         }
 
         private initPlayer(videoId: string) {
-            console.log(`${window.location.protocol}//${window.location.host}`);
-
-            this.player = new YT.Player('viewing', {
-                height: '390',
-                width: '640',
+            this.player = new YT.Player('player', {
+                height: `${this.kosyClient[0].innerHeight - 30}px`,
+                width: '100%',
                 videoId: videoId,
                 events: {
-                    'onReady': this.onPlayerReady,
-                    'onStateChange': this.onPlayerStateChange
+                    'onReady': () => this.onPlayerReady(),
+                    'onStateChange': (event) => this.onPlayerStateChange(event)
                 },
-                host: `${window.location.protocol}/${window.location.host}`,
             });
         }
 
         private onPlayerReady() {
-            console.log("Player is ready");
+            this.sendMessage({
+                type: "relay-message",
+                payload: { type: "video-play", payload: "" }
+            });
+        }
+
+        private onPlayVideo() {
             this.player.playVideo();
         }
 
+        private onPauseVideo() {
+            this.player.pauseVideo();
+        }
+
+        private onPlayAtVideo(seconds: number) {
+            this.player.seekTo(seconds, true);
+        }
+
         private onPlayerStateChange(event: YT.OnStateChangeEvent) {
-            console.log(event.data);
+            switch (event.data) {
+                case YT.PlayerState.PLAYING:
+                    console.log('playing');
+                    this.sendMessage({
+                        type: "relay-message",
+                        payload: { type: "video-play", payload: "" }
+                    });
+                    break;
+                case YT.PlayerState.PAUSED:
+                    console.log('paused');
+                    this.sendMessage({
+                        type: "relay-message",
+                        payload: { type: "video-pause", payload: "" }
+                    });
+                    break;
+                case YT.PlayerState.ENDED:
+                    console.log('ended');
+                    this.sendMessage({
+                        type: "relay-message",
+                        payload: { type: "video-pause", payload: "" }
+                    });
+                    break;
+            };
         }
 
         //Sends a message to the kosy client
-        public sendMessage(message: IntegrationToKosyMessage<VideoPicked | YoutubeIntegrationMessage>) {
+        public sendMessage(message: IntegrationToKosyMessage<VideoMessage | YoutubeIntegrationMessage>) {
             //TODO: fix message origin, we probably only want to send messages to a certain url?
             this.kosyClient.postMessage(message, "*");
         }
 
         //Processes a message that came in via the kosy client
-        private processIntegrationMessage(message: VideoPicked | YoutubeIntegrationMessage) {
+        private processIntegrationMessage(message: VideoMessage | YoutubeIntegrationMessage) {
             switch (message.type) {
                 case "youtube-changed":
                     document.getElementById("picking").hidden = true;
                     document.getElementById("waiting").hidden = true;
-                    let iframe = document.getElementById("viewing") as HTMLIFrameElement;
+                    let iframe = document.getElementById("player") as HTMLIFrameElement;
                     iframe.src = message.payload;
                     iframe.style.width = "100%";
                     iframe.style.height = `${this.kosyClient[0].innerHeight - 30}px`;
                     iframe.hidden = false;
                     break;
                 case "video-picked":
+                    document.getElementById("picking").hidden = true;
+                    document.getElementById("waiting").hidden = true;
                     this.initPlayer(message.payload);
+                    break;
+                case "video-play":
+                    this.onPlayVideo();
+                    break;
+                case "video-pause":
+                    this.onPauseVideo();
+                    break;
+                case "video-play-at":
+                    this.onPlayAtVideo(parseInt(message.payload));
                     break;
                 default:
                     break;
@@ -147,4 +189,4 @@ module Kosy.Integration.GoogleDrive {
     }
 }
 
-new Kosy.Integration.GoogleDrive.App().start({});
+new Kosy.Integration.Youtube.App().start({});
