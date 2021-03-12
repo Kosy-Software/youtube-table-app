@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "target": "ES6",
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "sourceMap": false,
+        "typeRoots": [
+            "node_modules/@types"
+        ],
+        "types": [
+            "youtube"
+        ]
+    },
+    "files": [
+        "app.ts",
+    ]
+}

@@ -1,0 +1,6 @@
+{
+    "dependencies": {
+        "@types/youtube": "0.0.42"
+    },
+    "devDependencies": {}
+}
