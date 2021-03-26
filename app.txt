@@ -1,6 +1,6 @@
-/// <reference types="./appmessages" />
-/// <reference types="./frameworkmessages" />
-/// <reference types="./youtubemessages" />
+/// <reference types="./lib/appmessages" />
+/// <reference types="./lib/frameworkmessages" />
+/// <reference types="./lib/youtubemessages" />
 
 module Kosy.Integration.Youtube {
     class StartupParameters { }
@@ -114,6 +114,7 @@ module Kosy.Integration.Youtube {
         }
 
         private onPlayerStateChange(event: YT.OnStateChangeEvent) {
+            console.log(event);
             switch (event.data) {
                 case YT.PlayerState.PLAYING:
                     console.log('playing');
