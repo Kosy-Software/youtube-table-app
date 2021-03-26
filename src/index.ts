@@ -9,7 +9,7 @@ import { KosyApi } from '@kosy/kosy-app-api';
 
 module Kosy.Integration.Youtube {
     export class App {
-        private state: AppState = { youtubeUrl: null };
+        private state: AppState = { youtubeUrl: null, videoState: null };
         private initializer: ClientInfo;
         private currentClient: ClientInfo;
 
@@ -55,6 +55,10 @@ module Kosy.Integration.Youtube {
                         this.renderComponent();
                     }
                     break;
+                case "receive-youtube-video-state":
+                    this.state.videoState = message.payload;
+                    this.renderComponent();
+                    break;
             }
         }
 
@@ -62,8 +66,12 @@ module Kosy.Integration.Youtube {
         private processComponentMessage(message: ComponentMessage) {
             switch (message.type) {
                 case "youtube-url-changed":
-                    //Notify all other clients that the google drive url has changed
+                    //Notify all other clients that the youtube url has changed
                     this.kosyApi.relayMessage({ type: "receive-youtube-url", payload: message.payload });
+                    break;
+                case "youtube-video-state-changed":
+                    //Notify all other clients that the youtube video state has changed
+                    this.kosyApi.relayMessage({ type: "receive-youtube-video-state", payload: message.payload });
                     break;
                 default:
                     break;
@@ -74,6 +82,7 @@ module Kosy.Integration.Youtube {
         private renderComponent() {
             render({
                 youtubeUrl: this.state.youtubeUrl,
+                videoState: this.state.videoState,
                 currentClient: this.currentClient,
                 initializer: this.initializer
             }, (message) => this.processComponentMessage(message));
