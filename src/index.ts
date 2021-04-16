@@ -6,12 +6,14 @@ import { render } from './views/renderState';
 import { isValidYoutubeUrl } from './lib/validation';
 import { ClientInfo } from '@kosy/kosy-app-api/types';
 import { KosyApi } from '@kosy/kosy-app-api';
+import { YoutubePlayer } from './player';
 
 module Kosy.Integration.Youtube {
     export class App {
         private state: AppState = { youtubeUrl: null, videoState: null };
         private initializer: ClientInfo;
         private currentClient: ClientInfo;
+        private player: YoutubePlayer;
 
         private kosyApi = new KosyApi<AppState, AppMessage>({
             onClientHasJoined: (client) => this.onClientHasJoined(client),
@@ -24,6 +26,7 @@ module Kosy.Integration.Youtube {
             this.initializer = initialInfo.clients[initialInfo.initializerClientUuid];
             this.currentClient = initialInfo.clients[initialInfo.currentClientUuid];
             this.state = initialInfo.currentAppState ?? this.state;
+            this.player = new YoutubePlayer((cm) => this.processComponentMessage(cm))
             this.renderComponent();
 
             //Might not be the best way of handling the google picker -> but it works well enough...
@@ -51,7 +54,7 @@ module Kosy.Integration.Youtube {
             switch (message.type) {
                 case "receive-youtube-url":
                     if (isValidYoutubeUrl(message.payload)) {
-                        this.state.youtubeUrl = message.payload;
+                        this.state.youtubeUrl = message.payload;;
                         this.renderComponent();
                     }
                     break;
@@ -84,7 +87,8 @@ module Kosy.Integration.Youtube {
                 youtubeUrl: this.state.youtubeUrl,
                 videoState: this.state.videoState,
                 currentClient: this.currentClient,
-                initializer: this.initializer
+                initializer: this.initializer,
+                player: this.player,
             }, (message) => this.processComponentMessage(message));
         }
 

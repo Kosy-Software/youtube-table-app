@@ -1,4 +1,5 @@
 import { ClientInfo } from '@kosy/kosy-app-api/types';
+import { YoutubePlayer } from '../player';
 
 export interface AppState {
     /// This state is only set once in this app
@@ -11,4 +12,5 @@ export interface ComponentState extends AppState {
     currentClient: ClientInfo;
     /// Immutable, represents the kosy client that started the app
     initializer: ClientInfo;
+    player: YoutubePlayer;
 }

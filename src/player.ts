@@ -2,18 +2,29 @@ import { ComponentMessage } from './lib/appMessages';
 /// <reference types="@types/youtube" />
 
 export class YoutubePlayer {
-    private player: any;
+    private player: YT.Player;
+    private videoId: string;
 
-    public constructor(videoId: string, dispatch: ((msg: ComponentMessage) => any)) {
+    public constructor(dispatch: ((msg: ComponentMessage) => any)) {
         this.player = new YT.Player('viewing', {
-            height: `${window.innerHeight}px`,
-            width: '100%',
-            videoId: videoId,
+            height: '0',
+            width: '0',
             events: {
-                'onReady': () => { this.onPlayerReady(); },
-                'onStateChange': (event) => { this.onPlayerStateChange(event, dispatch); }
+                'onReady': () => this.onPlayerReady(),
+                'onStateChange': (event) => this.onPlayerStateChange(event, dispatch)
             },
         });
+    }
+
+    public setVideoId(videoId: string) {
+        this.videoId = videoId;
+    }
+
+    private loadVideo() {
+        if (this.videoId != null && this.videoId != "") {
+            this.player.loadVideoById(this.videoId, 0, 'large');
+            this.player.setSize(window.innerWidth, window.innerHeight);
+        }
     }
 
     public handleStateChange(newState: YT.PlayerState) {
@@ -34,6 +45,9 @@ export class YoutubePlayer {
 
     private onPlayerReady() {
         console.log("Video player is ready!")
+        if (this.videoId != null) {
+            this.loadVideo();
+        }
     }
 
     private onPlayVideo() {
