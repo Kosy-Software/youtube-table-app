@@ -17,22 +17,29 @@ module Kosy.Integration.Youtube {
 
         private kosyApi = new KosyApi<AppState, AppMessage>({
             onClientHasJoined: (client) => this.onClientHasJoined(client),
-            onClientHasLeft: (client) => this.onClientHasLeft(client),
+            onClientHasLeft: (clientUuid) => this.onClientHasLeft(clientUuid),
             onReceiveMessage: (message) => this.processMessage(message),
-            onRequestState: () => this.getState()
+            onRequestState: () => this.getState(),
+            onProvideState: (newState: AppState) => this.setState(newState)
         })
+
         public async start() {
             let initialInfo = await this.kosyApi.startApp();
             this.initializer = initialInfo.clients[initialInfo.initializerClientUuid];
             this.currentClient = initialInfo.clients[initialInfo.currentClientUuid];
             this.state = initialInfo.currentAppState ?? this.state;
-            this.player = new YoutubePlayer(`${window.origin}`, 'M7lc1UVf-VE', initialInfo.currentClientUuid == initialInfo.initializerClientUuid, (cm) => this.processComponentMessage(cm));
+            this.player = new YoutubePlayer(window.origin, '', initialInfo.currentClientUuid == initialInfo.initializerClientUuid, (cm) => this.processComponentMessage(cm));
             this.renderComponent();
 
             //Might not be the best way of handling the google picker -> but it works well enough...
             window.addEventListener("message", (event: MessageEvent<ComponentMessage>) => {
                 this.processComponentMessage(event.data)
             });
+        }
+
+        public setState(newState: AppState) {
+            this.state = newState;
+            this.renderComponent();
         }
 
         public getState() {
@@ -43,9 +50,8 @@ module Kosy.Integration.Youtube {
             //No need to process this message for this app
         }
 
-        public onClientHasLeft(client: ClientInfo) {
-            //If no google drive url has been picked, and the initializer is gone -> end the integration
-            if (client.clientUuid === this.initializer.clientUuid && !this.state.youtubeUrl) {
+        public onClientHasLeft(clientUuid: string) {
+            if (clientUuid === this.initializer.clientUuid && !this.state.youtubeUrl) {
                 this.kosyApi.stopApp();
             }
         }
@@ -59,15 +65,18 @@ module Kosy.Integration.Youtube {
                     }
                     break;
                 case "receive-youtube-video-state":
-                    this.state.videoState = message.payload;
+                    this.state.videoState = message.payload.state;
+                    this.state.time = message.payload.time;
                     if (this.state.videoState == YT.PlayerState.ENDED) {
+                        console.log("Video ended, clearing youtube url");
                         this.state.youtubeUrl = null;
+                        this.state.videoState = null;
+                        this.kosyApi.stopApp();
                     }
                     this.renderComponent();
                     break;
             }
         }
-
 
         private processComponentMessage(message: ComponentMessage) {
             switch (message.type) {
@@ -89,6 +98,7 @@ module Kosy.Integration.Youtube {
             render({
                 youtubeUrl: this.state.youtubeUrl,
                 videoState: this.state.videoState,
+                time: this.state.time,
                 currentClient: this.currentClient,
                 initializer: this.initializer,
                 player: this.player,

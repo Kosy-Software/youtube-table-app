@@ -5,18 +5,16 @@ export class YoutubePlayer {
     private player: YT.Player;
     private videoId: string;
     private dispatch: ((msg: ComponentMessage) => any);
+    private interval: number;
 
     public constructor(origin: string, videoId: string, isHost: boolean, dispatchFun: ((msg: ComponentMessage) => any)) {
         this.dispatch = dispatchFun;
-        console.log("Init youtube player");
-        console.log(origin);
         this.player = new YT.Player('viewing', {
             height: `${window.innerHeight}px`,
             width: `${window.innerWidth}px`,
             videoId: videoId,
             events: {
-                onReady: () => this.onPlayerReady(),
-                onStateChange: (event) => this.onPlayerStateChange(event)
+                onReady: () => this.onPlayerReady(isHost),
             },
             playerVars: {
                 enablejsapi: 1,
@@ -33,6 +31,10 @@ export class YoutubePlayer {
         this.videoId = videoId;
     }
 
+    public getPlayer(): HTMLIFrameElement {
+        return this.player.getIframe();
+    }
+
     private loadVideo() {
         if (this.videoId != null && this.videoId != "") {
             this.player.loadVideoById(this.videoId, 0, 'large');
@@ -40,63 +42,48 @@ export class YoutubePlayer {
         }
     }
 
-    public handleStateChange(newState: YT.PlayerState) {
-        switch (newState) {
-            case YT.PlayerState.PLAYING:
-                console.log('play video');
-                this.onPlayVideo();
-                break;
-            case YT.PlayerState.PAUSED:
-                console.log('paused');
-                this.onPauseVideo();
-                break;
-            case YT.PlayerState.ENDED:
-                console.log('ended');
-                break;
-            default:
-                break;
-        };
-    }
-
-    private onPlayerReady() {
-        console.log("Video player is ready!")
-        if (this.videoId != null) {
-            this.loadVideo();
+    public handleStateChange(newState: YT.PlayerState, time?: number) {
+        let currentState = this.player.getPlayerState();
+        console.log(`current state: ${currentState} - new state: ${newState}`);
+        if (currentState != newState) {
+            if (time != null) {
+                this.player.seekTo(time, true);
+            }
+            switch (newState) {
+                case YT.PlayerState.BUFFERING:
+                case YT.PlayerState.PLAYING:
+                    console.log(`Play video at ${time}`);
+                    this.player.playVideo();
+                    break;
+                case YT.PlayerState.PAUSED:
+                    console.log(`Pause video at ${time}`);
+                    this.player.pauseVideo();
+                    break;
+                case YT.PlayerState.ENDED:
+                    console.log('Video ended');
+                    break;
+                default:
+                    break;
+            };
         }
     }
 
-    private onPlayVideo() {
-        console.log(this.player);
-        this.player.playVideo();
+    private onPlayerReady(isHost: boolean) {
+        console.log("Video player is ready!")
+        if (this.videoId != null) {
+            this.loadVideo();
+            if (isHost) {
+                this.interval = window.setInterval(() => { this.getCurrentStateAndTime(); }, 500)
+            }
+        }
     }
 
-    private onPauseVideo() {
-        console.log(this.player);
-        this.player.pauseVideo();
-    }
-
-    private onPlayAtVideo(seconds: number) {
-        this.player.seekTo(seconds, true);
-    }
-
-    private onPlayerStateChange(event: YT.OnStateChangeEvent) {
-        console.log(`Current state = ${event.data}`);
-
-        switch (event.data) {
-            case YT.PlayerState.PLAYING:
-                console.log('playing');
-                this.dispatch({ type: "youtube-video-state-changed", payload: YT.PlayerState.PLAYING });
-                break;
-            case YT.PlayerState.PAUSED:
-                console.log('paused');
-                this.dispatch({ type: "youtube-video-state-changed", payload: YT.PlayerState.PAUSED });
-                break;
-            case YT.PlayerState.ENDED:
-                console.log('ended');
-                this.dispatch({ type: "youtube-video-state-changed", payload: YT.PlayerState.ENDED });
-                break;
-            default:
-                break;
+    private getCurrentStateAndTime() {
+        let state = this.player.getPlayerState();
+        let currentTime = this.player.getCurrentTime();
+        this.dispatch({ type: "youtube-video-state-changed", payload: { state: state, time: currentTime } });
+        if (state == YT.PlayerState.ENDED && this.interval != null) {
+            clearInterval(this.interval)
         }
     }
 }

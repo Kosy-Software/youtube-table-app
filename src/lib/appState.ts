@@ -5,6 +5,7 @@ export interface AppState {
     /// This state is only set once in this app
     youtubeUrl?: string;
     videoState?: YT.PlayerState;
+    time?: number;
 }
 
 export interface ComponentState extends AppState {

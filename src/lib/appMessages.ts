@@ -9,7 +9,7 @@ export interface ReceiveYoutubeUrl {
 
 export interface ReceiveYoutubeVideoState {
     type: "receive-youtube-video-state";
-    payload: YT.PlayerState;
+    payload: { state: YT.PlayerState, time: number };
 }
 
 /// Internal component messages
@@ -23,5 +23,5 @@ export interface YoutubeUrlHasChanged {
 
 export interface YoutubeVideoStateChanged {
     type: "youtube-video-state-changed";
-    payload: YT.PlayerState;
+    payload: { state: YT.PlayerState, time: number };
 }
