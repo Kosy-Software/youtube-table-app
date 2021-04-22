@@ -26,7 +26,7 @@ module Kosy.Integration.Youtube {
             this.initializer = initialInfo.clients[initialInfo.initializerClientUuid];
             this.currentClient = initialInfo.clients[initialInfo.currentClientUuid];
             this.state = initialInfo.currentAppState ?? this.state;
-            this.player = new YoutubePlayer((cm) => this.processComponentMessage(cm))
+            this.player = new YoutubePlayer(`${window.origin}`, 'M7lc1UVf-VE', initialInfo.currentClientUuid == initialInfo.initializerClientUuid, (cm) => this.processComponentMessage(cm));
             this.renderComponent();
 
             //Might not be the best way of handling the google picker -> but it works well enough...
@@ -54,12 +54,15 @@ module Kosy.Integration.Youtube {
             switch (message.type) {
                 case "receive-youtube-url":
                     if (isValidYoutubeUrl(message.payload)) {
-                        this.state.youtubeUrl = message.payload;;
+                        this.state.youtubeUrl = `${message.payload}`;
                         this.renderComponent();
                     }
                     break;
                 case "receive-youtube-video-state":
                     this.state.videoState = message.payload;
+                    if (this.state.videoState == YT.PlayerState.ENDED) {
+                        this.state.youtubeUrl = null;
+                    }
                     this.renderComponent();
                     break;
             }

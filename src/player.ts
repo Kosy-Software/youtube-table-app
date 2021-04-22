@@ -4,14 +4,27 @@ import { ComponentMessage } from './lib/appMessages';
 export class YoutubePlayer {
     private player: YT.Player;
     private videoId: string;
+    private dispatch: ((msg: ComponentMessage) => any);
 
-    public constructor(dispatch: ((msg: ComponentMessage) => any)) {
+    public constructor(origin: string, videoId: string, isHost: boolean, dispatchFun: ((msg: ComponentMessage) => any)) {
+        this.dispatch = dispatchFun;
+        console.log("Init youtube player");
+        console.log(origin);
         this.player = new YT.Player('viewing', {
-            height: '0',
-            width: '0',
+            height: `${window.innerHeight}px`,
+            width: `${window.innerWidth}px`,
+            videoId: videoId,
             events: {
-                'onReady': () => this.onPlayerReady(),
-                'onStateChange': (event) => this.onPlayerStateChange(event, dispatch)
+                onReady: () => this.onPlayerReady(),
+                onStateChange: (event) => this.onPlayerStateChange(event)
+            },
+            playerVars: {
+                enablejsapi: 1,
+                controls: isHost ? 1 : 0,
+                origin: origin,
+                fs: 1,
+                rel: 0,
+                modestbranding: 1,
             },
         });
     }
@@ -40,6 +53,8 @@ export class YoutubePlayer {
             case YT.PlayerState.ENDED:
                 console.log('ended');
                 break;
+            default:
+                break;
         };
     }
 
@@ -64,19 +79,23 @@ export class YoutubePlayer {
         this.player.seekTo(seconds, true);
     }
 
-    private onPlayerStateChange(event: YT.OnStateChangeEvent, dispatch: ((msg: ComponentMessage) => any)) {
+    private onPlayerStateChange(event: YT.OnStateChangeEvent) {
+        console.log(`Current state = ${event.data}`);
+
         switch (event.data) {
             case YT.PlayerState.PLAYING:
                 console.log('playing');
-                dispatch({ type: "youtube-video-state-changed", payload: YT.PlayerState.PLAYING });
+                this.dispatch({ type: "youtube-video-state-changed", payload: YT.PlayerState.PLAYING });
                 break;
             case YT.PlayerState.PAUSED:
                 console.log('paused');
-                dispatch({ type: "youtube-video-state-changed", payload: YT.PlayerState.PAUSED });
+                this.dispatch({ type: "youtube-video-state-changed", payload: YT.PlayerState.PAUSED });
                 break;
             case YT.PlayerState.ENDED:
                 console.log('ended');
-                dispatch({ type: "youtube-video-state-changed", payload: YT.PlayerState.ENDED });
+                this.dispatch({ type: "youtube-video-state-changed", payload: YT.PlayerState.ENDED });
+                break;
+            default:
                 break;
         }
     }
