@@ -28,13 +28,29 @@ module Kosy.Integration.Youtube {
             this.initializer = initialInfo.clients[initialInfo.initializerClientUuid];
             this.currentClient = initialInfo.clients[initialInfo.currentClientUuid];
             this.state = initialInfo.currentAppState ?? this.state;
-            this.player = new YoutubePlayer(window.origin, '', initialInfo.currentClientUuid == initialInfo.initializerClientUuid, (cm) => this.processComponentMessage(cm));
+            this.setupPlayerScript();
             this.renderComponent();
 
             //Might not be the best way of handling the google picker -> but it works well enough...
             window.addEventListener("message", (event: MessageEvent<ComponentMessage>) => {
                 this.processComponentMessage(event.data)
             });
+        }
+
+        private setupPlayerScript() {
+            //Make sure api is loaded before initializing player
+            window.onYouTubeIframeAPIReady = () => { this.onYouTubeIframeAPIReady(); };
+
+            const tag = document.createElement("script");
+            tag.src = "https://www.youtube.com/iframe_api";
+
+            const firstScriptTag = document.getElementsByTagName("script")[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        }
+
+        private onYouTubeIframeAPIReady() {
+            console.log('Youtube api is ready');
+            this.player = new YoutubePlayer(window.origin, '', this.initializer.clientUuid == this.currentClient.clientUuid, (cm) => this.processComponentMessage(cm));
         }
 
         public setState(newState: AppState) {
@@ -117,4 +133,10 @@ module Kosy.Integration.Youtube {
     }
 
     new App().start();
+}
+
+declare global {
+    interface Window {
+        onYouTubeIframeAPIReady?: () => void;
+    }
 }

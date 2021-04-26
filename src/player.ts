@@ -7,19 +7,32 @@ export class YoutubePlayer {
     private dispatch: ((msg: ComponentMessage) => any);
     private interval: number;
     private isHost: boolean;
+    private origin: string;
 
     public constructor(origin: string, videoId: string, isHost: boolean, dispatchFun: ((msg: ComponentMessage) => any)) {
         this.dispatch = dispatchFun;
         this.isHost = isHost;
+        this.origin = origin;
 
-        //Make sure api is loaded before initializing player
-        const tag = document.createElement("script");
-        tag.src = "https://www.youtube.com/iframe_api";
-
-        const firstScriptTag = document.getElementsByTagName("script")[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-        tag.onload = () => this.setupPlayer(origin, videoId, isHost);
+        this.player = new YT.Player('viewing', {
+            height: `0px`,
+            width: `0px`,
+            videoId: videoId,
+            events: {
+                onReady: () => this.onPlayerReady(),
+            },
+            playerVars: {
+                enablejsapi: 1,
+                controls: this.isHost ? 1 : 0,
+                disablekb: this.isHost ? 0 : 1,
+                origin: this.origin,
+                fs: 1,
+                rel: 0,
+                modestbranding: 1,
+                showinfo: 0,
+                autohide: this.isHost ? 0 : 1,
+            },
+        });
     }
 
     public setVideoId(videoId: string) {
@@ -32,28 +45,6 @@ export class YoutubePlayer {
             iframe.classList.add('remove-click');
         }
         return iframe;
-    }
-
-    private setupPlayer(origin: string, videoId: string, isHost: boolean) {
-        this.player = new YT.Player('viewing', {
-            height: `${window.innerHeight}px`,
-            width: `${window.innerWidth}px`,
-            videoId: videoId,
-            events: {
-                onReady: () => this.onPlayerReady(isHost),
-            },
-            playerVars: {
-                enablejsapi: 1,
-                controls: isHost ? 1 : 0,
-                disablekb: isHost ? 0 : 1,
-                origin: origin,
-                fs: 1,
-                rel: 0,
-                modestbranding: 1,
-                showinfo: 0,
-                autohide: isHost ? 0 : 1,
-            },
-        });
     }
 
     private loadVideo() {
@@ -89,12 +80,12 @@ export class YoutubePlayer {
         }
     }
 
-    private onPlayerReady(isHost: boolean) {
+    private onPlayerReady() {
         console.log("Video player is ready!")
         if (this.videoId != null) {
             this.loadVideo();
             this.player.playVideo();
-            if (isHost) {
+            if (this.isHost) {
                 this.interval = window.setInterval(() => { this.getCurrentStateAndTime(); }, 500)
             }
         }

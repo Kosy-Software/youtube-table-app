@@ -10,6 +10,9 @@ export function renderPickingState(state: ComponentState, dispatch: ((msg: Compo
     let youtubeUrlInput = picker.querySelector("input");
     let openVideoBtn = picker.querySelector("#open-video") as HTMLInputElement;
 
+    let viewingRoot = document.querySelector("#viewing") as HTMLTemplateElement;
+    viewingRoot.hidden = true;
+
     youtubeUrlInput.oninput = (event: Event) => {
         const val = youtubeUrlInput.value;
 
