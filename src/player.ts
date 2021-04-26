@@ -3,7 +3,7 @@ import { ComponentMessage } from './lib/appMessages';
 
 export class YoutubePlayer {
     private player: YT.Player;
-    private videoId: string;
+    public videoId: string;
     private dispatch: ((msg: ComponentMessage) => any);
     private interval: number;
     private isHost: boolean;

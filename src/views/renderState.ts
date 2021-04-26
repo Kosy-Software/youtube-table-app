@@ -30,7 +30,7 @@ export function render(state: ComponentState, dispatch: Dispatch): void {
         }
     }
 
-    if (state.videoState == null) {
+    if (state.videoState == null || state.player.videoId == null) {
         //No need to import (and maintain) an entire component library and its customs for this small app...
         //All of the states are cleanly defined
         var emptyNode = rootNode.cloneNode(false);
