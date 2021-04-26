@@ -9,7 +9,6 @@ export function renderPickingState(state: ComponentState, dispatch: ((msg: Compo
 
     let youtubeUrlInput = picker.querySelector("input");
     let openVideoBtn = picker.querySelector("#open-video") as HTMLInputElement;
-    let errorLabel = picker.querySelector("#validation-error") as HTMLLabelElement;
 
     youtubeUrlInput.oninput = (event: Event) => {
         const val = youtubeUrlInput.value;

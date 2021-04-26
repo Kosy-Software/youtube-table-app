@@ -11,6 +11,30 @@ export class YoutubePlayer {
     public constructor(origin: string, videoId: string, isHost: boolean, dispatchFun: ((msg: ComponentMessage) => any)) {
         this.dispatch = dispatchFun;
         this.isHost = isHost;
+
+        //Make sure api is loaded before initializing player
+        const tag = document.createElement("script");
+        tag.src = "https://www.youtube.com/iframe_api";
+
+        const firstScriptTag = document.getElementsByTagName("script")[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        tag.onload = () => this.setupPlayer(origin, videoId, isHost);
+    }
+
+    public setVideoId(videoId: string) {
+        this.videoId = videoId;
+    }
+
+    public getPlayer(): HTMLIFrameElement {
+        let iframe = this.player.getIframe();
+        if (!this.isHost) {
+            iframe.classList.add('remove-click');
+        }
+        return iframe;
+    }
+
+    private setupPlayer(origin: string, videoId: string, isHost: boolean) {
         this.player = new YT.Player('viewing', {
             height: `${window.innerHeight}px`,
             width: `${window.innerWidth}px`,
@@ -30,18 +54,6 @@ export class YoutubePlayer {
                 autohide: isHost ? 0 : 1,
             },
         });
-    }
-
-    public setVideoId(videoId: string) {
-        this.videoId = videoId;
-    }
-
-    public getPlayer(): HTMLIFrameElement {
-        let iframe = this.player.getIframe();
-        if (!this.isHost) {
-            iframe.classList.add('remove-click');
-        }
-        return iframe;
     }
 
     private loadVideo() {
