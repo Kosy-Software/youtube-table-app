@@ -14,17 +14,23 @@
     <script src="https://www.youtube.com/iframe_api"></script>
     <template id="waiting">
         <div class="waiting">
+            <h3>Youtube sharing</h3>
             <label></label>
-            <img src="assets/waiting.svg" />
+            <div class="gap"></div>
+            <div class="img-container">
+                <img src="assets/youtube.png" />
+            </div>
         </div>
     </template>
     <template id="picking">
+        <button id="close" class="close-button">X</button>
         <div class="picking">
-            <h3>Youtube Video Player</h3>
-            <div>
-                <input type="text" id="youtube-input" placeholder="Paste Youtube video URL">
-                <button id="open-video" disabled>Open video</button>
-            </div>
+            <h3>Embed Youtube</h3>
+            <label>Paste YouTube URL below to watch video together at the table</label>
+            <div class="gap"></div>
+            <input type="text" id="youtube-input">
+            <button id="open-video" disabled>Play video</button>
+            <label id="validation-error" style="color: red"></label>
         </div>
     </template>
     <template id="viewing">

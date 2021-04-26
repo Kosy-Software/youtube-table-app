@@ -22,6 +22,13 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Create settings file
+        id: add-settings
+        uses: jsdaniell/create-json@1.1.2
+        with:
+          name: "settings.json"
+          json: {}    
+
       - name: Install and Build 🔧 # This example project is built using npm and outputs the result to the 'build' folder. Replace with the commands required to build your project, or remove this step entirely if your site is pre-built.
         run: |
           yarn install

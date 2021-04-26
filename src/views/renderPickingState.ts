@@ -7,23 +7,38 @@ export function renderPickingState(state: ComponentState, dispatch: ((msg: Compo
     let pickingRoot = document.querySelector("#picking") as HTMLTemplateElement;
     let picker = pickingRoot.content.cloneNode(true) as HTMLElement;
 
-    let fileUrlInput = picker.querySelector("input");
+    let youtubeUrlInput = picker.querySelector("input");
     let openVideoBtn = picker.querySelector("#open-video") as HTMLInputElement;
-    fileUrlInput.oninput = (event: Event) => {
-        const val = fileUrlInput.value;
+    let errorLabel = picker.querySelector("#validation-error") as HTMLLabelElement;
+
+    youtubeUrlInput.oninput = (event: Event) => {
+        const val = youtubeUrlInput.value;
+
+        youtubeUrlInput.classList.remove("invalid");
+        youtubeUrlInput.classList.remove("valid");
+        openVideoBtn.classList.remove("valid");
+
         if (isValidYoutubeUrl(val)) {
             openVideoBtn.removeAttribute("disabled");
-            fileUrlInput.style.color = "black";
+            youtubeUrlInput.style.color = "black";
+            openVideoBtn.classList.add("valid");
+            youtubeUrlInput.classList.add("valid");
         } else {
             openVideoBtn.setAttribute("disabled", "disabled");
-            fileUrlInput.style.color = "red";
+            youtubeUrlInput.classList.add("invalid");
+            youtubeUrlInput.style.color = "red";
         }
     }
     //This sets up the google input element -> on input changed -> relay a message
     openVideoBtn.onclick = (event: Event) => {
         //First draft -> google drive url needs to be validated, for now, this just accepts everything
-        let url = fileUrlInput.value;
+        let url = youtubeUrlInput.value;
         dispatch({ type: "youtube-url-changed", payload: url });
+    }
+
+    let closeBtn = picker.querySelector("#close") as HTMLInputElement;
+    closeBtn.onclick = (event: Event) => {
+        dispatch({ type: "close-integration" });
     }
 
     return picker;

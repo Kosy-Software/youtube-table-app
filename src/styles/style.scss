@@ -1,4 +1,7 @@
-$border-radius: 12px;
+@use "_colors.scss" as colors;
+
+$input-border-radius: 12px;
+$button-border-radius: 28px;
 
 .picker {
     height: 100% !important;
@@ -8,70 +11,123 @@ $border-radius: 12px;
 
 body {
     overflow: hidden;
-    font-family: 'Source Sans Pro', sans-serif;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.02em;
+    color: colors.$color-grey;
+}
+
+h1, h2, h3, h4, h5 {
+    font-family: 'Poppins', sans-serif;
+    color: colors.$color-black-bluish;
+}
+
+h3 {
+    font-weight: 700;
+    font-size: 24px;
     margin: 0;
 }
 
-.waiting {
-    width: 100%;
-    text-align: center;
-    margin-top: 20px;
+.gap {
+    height: 5px;
+    content: ' ';
+}
 
-    label {
-        display: block;
+.waiting {
+    display: grid;
+    justify-content: center;
+    align-content: center;
+    text-align: center;
+    height: 100vh;
+
+    .gap {
+        height: 24px;
+        content: ' '
     }
 
-    img {
-        margin-top: 15%;
-        max-width: 25%;
-        max-height: 25%;
+    .img-container {
+        width: 400px;
     }
 }
 
+.close-button {
+    border-radius: $button-border-radius;
+    border: 1px solid colors.$color-black-bluish;
+    width: 52px;
+    height: 52px;
+    margin-top: 24px;
+    margin-left: 24px;
+    color: black;
+}
+
+button {
+    padding: 17.5px;
+    font-size: 14px;
+    border-radius: $button-border-radius;
+    border: 1px solid colors.$color-grey-border;
+    cursor: pointer;
+    background-color: white;
+    color: colors.$color-grey;
+
+    &:disabled {
+        background-color: colors.$color-white-broken;
+        color: #C9CED4;
+        cursor: not-allowed;
+    }
+
+    &.valid {
+        color: white;
+        background-color: colors.$color-primary;
+    }
+}
+
+.remove-click {
+    pointer-events:none;
+}
+
 .picking {
+    margin-top: -52px;
     display: grid;
     justify-content: center;
     align-content: center;
     row-gap: 1em;
     height: 100vh;
     font-size: 16px;
+    text-align: center;
+    
+    div {
+        width: 400px;
+    }
 
-    h3 {
-        font-weight: 700;
-        text-align: center;
-        font-size: 24px;
-        margin: 0;
+    label {
+        font-size: 16px;
+        font-style: normal;
+        font-weight: normal;
     }
 
     input {
-        background-color: #F1F2F5;
+        background-color: white;
         padding: 13px 13px 13px 13px;
-        border: none;
-        border-radius: $border-radius;
-        width: 200px;
-        margin-right: 10px;
-        text-align: center;
-    }
+        border: 1px solid colors.$color-grey-border;
+        border-radius: $input-border-radius;
 
-    button {
-        color: white;
-        padding: 13px 13px 13px 16px;
-        background-color: #696DFF;
-        border-radius: $border-radius;
-        border: 0;
-        cursor: pointer;
-
-        &:disabled {
-            background-color: #F9F9F9;
-            color: #C9CED4;
-            cursor: not-allowed;
+        &:focus {
+            outline: none;
         }
 
-        img {
-            position: fixed;
-            margin-top: 1px;
-            margin-left: 6px;
-            max-height: 13px;
+        &::placeholder {
+            color: colors.$color-grey-default;
+        }
+
+        &.valid {
+            border-color: colors.$color-primary;
+        }
+
+        &.invalid {
+            border-color: colors.$color-danger;
+            color: colors.$color-danger;
         }
     }
 
@@ -79,6 +135,15 @@ body {
         margin: 0;
         height: 20px;
         font-size: 16px;
-        text-align: center;
+    }
+}
+
+.viewing {
+    .overlay {
+        height: 100vh;
+        width: 100vw;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 }

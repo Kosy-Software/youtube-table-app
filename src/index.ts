@@ -58,6 +58,9 @@ module Kosy.Integration.Youtube {
 
         public processMessage(message: AppMessage) {
             switch (message.type) {
+                case "close-integration":
+                    this.kosyApi.stopApp();
+                    break;
                 case "receive-youtube-url":
                     if (isValidYoutubeUrl(message.payload)) {
                         this.state.youtubeUrl = `${message.payload}`;
@@ -80,6 +83,9 @@ module Kosy.Integration.Youtube {
 
         private processComponentMessage(message: ComponentMessage) {
             switch (message.type) {
+                case "close-integration":
+                    this.kosyApi.relayMessage({ type: "close-integration" });
+                    break;
                 case "youtube-url-changed":
                     //Notify all other clients that the youtube url has changed
                     this.kosyApi.relayMessage({ type: "receive-youtube-url", payload: message.payload });

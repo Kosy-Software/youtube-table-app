@@ -10,5 +10,8 @@ export function renderViewingState(state: ComponentState, dispatch: ((msg: Compo
 
     state.player.setVideoId(videoId);
 
-    return state.player.getPlayer();
+    let iframe = state.player.getPlayer();
+    iframe.classList.add('overlay');
+
+    return iframe;
 }
