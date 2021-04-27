@@ -13,6 +13,8 @@ export function renderPickingState(state: ComponentState, dispatch: ((msg: Compo
     let viewingRoot = document.querySelector("#viewing") as HTMLTemplateElement;
     viewingRoot.hidden = true;
 
+    let errorLabel = picker.querySelector("#error") as HTMLElement;
+
     youtubeUrlInput.oninput = (event: Event) => {
         const val = youtubeUrlInput.value;
 
@@ -22,10 +24,12 @@ export function renderPickingState(state: ComponentState, dispatch: ((msg: Compo
 
         if (isValidYoutubeUrl(val)) {
             openVideoBtn.removeAttribute("disabled");
+            errorLabel.innerHTML = '';
             youtubeUrlInput.style.color = "black";
             openVideoBtn.classList.add("valid");
             youtubeUrlInput.classList.add("valid");
         } else {
+            errorLabel.innerHTML = 'This is an invalid youtube video url';
             openVideoBtn.setAttribute("disabled", "disabled");
             youtubeUrlInput.classList.add("invalid");
             youtubeUrlInput.style.color = "red";

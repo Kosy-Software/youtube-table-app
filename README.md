@@ -4,6 +4,10 @@ Table app for Google Drive integration
 ## Alias localhost
 Since google doesn't like people running their API's on localhost (don't ask me why...), create an alias to localhost:
 
+## Debugging tool
+
+https://kosy-software.github.io/kosy-debug-app/?url=https://kosy-software.github.io/youtube-table-app
+
 ### For windows
 1) Open a text editor in administrator mode
 2) Open the hosts file "c:\Windows\System32\drivers\etc\hosts"

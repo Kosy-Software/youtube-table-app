@@ -52,6 +52,12 @@ h3 {
     }
 }
 
+#error {
+    color: colors.$color-danger;
+    text-align: start;
+    font-size: 10;
+}
+
 .close-button {
     border-radius: $button-border-radius;
     border: 1px solid colors.$color-black-bluish;

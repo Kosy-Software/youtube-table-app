@@ -56,7 +56,6 @@ export class YoutubePlayer {
 
     public handleStateChange(newState: YT.PlayerState, time?: number) {
         let currentState = this.player.getPlayerState();
-        console.log(`current state: ${currentState} - new state: ${newState}`);
         if (currentState != newState) {
             if (time != null) {
                 this.player.seekTo(time, true);
@@ -81,7 +80,6 @@ export class YoutubePlayer {
     }
 
     private onPlayerReady() {
-        console.log("Video player is ready!")
         if (this.videoId != null) {
             this.loadVideo();
             this.player.playVideo();
