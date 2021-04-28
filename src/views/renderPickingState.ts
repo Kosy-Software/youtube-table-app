@@ -25,11 +25,17 @@ export function renderPickingState(state: ComponentState, dispatch: ((msg: Compo
         if (isValidYoutubeUrl(val)) {
             openVideoBtn.removeAttribute("disabled");
             errorLabel.innerHTML = '';
+            errorLabel.style.marginBottom = "0";
+            errorLabel.style.marginTop = "0";
+
             youtubeUrlInput.style.color = "black";
             openVideoBtn.classList.add("valid");
             youtubeUrlInput.classList.add("valid");
         } else {
             errorLabel.innerHTML = 'This is an invalid youtube video url';
+            errorLabel.style.marginBottom = "16px";
+            errorLabel.style.marginTop = "5px";
+
             openVideoBtn.setAttribute("disabled", "disabled");
             youtubeUrlInput.classList.add("invalid");
             youtubeUrlInput.style.color = "red";
@@ -40,11 +46,6 @@ export function renderPickingState(state: ComponentState, dispatch: ((msg: Compo
         //First draft -> google drive url needs to be validated, for now, this just accepts everything
         let url = youtubeUrlInput.value;
         dispatch({ type: "youtube-url-changed", payload: url });
-    }
-
-    let closeBtn = picker.querySelector("#close") as HTMLInputElement;
-    closeBtn.onclick = (event: Event) => {
-        dispatch({ type: "close-integration" });
     }
 
     return picker;
