@@ -14,6 +14,7 @@ module Kosy.Integration.Youtube {
         private initializer: ClientInfo;
         private currentClient: ClientInfo;
         private player: YoutubePlayer;
+        private isApiReady: boolean;
 
         private kosyApi = new KosyApi<AppState, AppMessage>({
             onClientHasJoined: (client) => this.onClientHasJoined(client),
@@ -28,10 +29,10 @@ module Kosy.Integration.Youtube {
             this.initializer = initialInfo.clients[initialInfo.initializerClientUuid];
             this.currentClient = initialInfo.clients[initialInfo.currentClientUuid];
             this.state = initialInfo.currentAppState ?? this.state;
+            this.isApiReady = false;
             this.setupPlayerScript();
             this.renderComponent();
 
-            //Might not be the best way of handling the google picker -> but it works well enough...
             window.addEventListener("message", (event: MessageEvent<ComponentMessage>) => {
                 this.processComponentMessage(event.data)
             });
@@ -50,10 +51,13 @@ module Kosy.Integration.Youtube {
 
         private onYouTubeIframeAPIReady() {
             console.log('Youtube api is ready');
+            this.isApiReady = true;
             this.player = new YoutubePlayer(window.origin, '', this.initializer.clientUuid == this.currentClient.clientUuid, (cm) => this.processComponentMessage(cm));
         }
 
         public setState(newState: AppState) {
+            console.log("New app state");
+            console.log(newState);
             this.state = newState;
             this.renderComponent();
         }
@@ -84,15 +88,17 @@ module Kosy.Integration.Youtube {
                     }
                     break;
                 case "receive-youtube-video-state":
-                    this.state.videoState = message.payload.state;
-                    this.state.time = message.payload.time;
-                    if (this.state.videoState == YT.PlayerState.ENDED) {
-                        console.log("Video ended, clearing youtube url");
-                        this.state.youtubeUrl = null;
-                        this.state.videoState = null;
-                        this.kosyApi.stopApp();
+                    if (this.isApiReady) {
+                        this.state.videoState = message.payload.state;
+                        this.state.time = message.payload.time;
+                        if (this.state.videoState == YT.PlayerState.ENDED) {
+                            console.log("Video ended, clearing youtube url");
+                            this.state.youtubeUrl = null;
+                            this.state.videoState = null;
+                            this.kosyApi.stopApp();
+                        }
+                        this.renderComponent();
                     }
-                    this.renderComponent();
                     break;
             }
         }

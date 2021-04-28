@@ -55,27 +55,37 @@ export class YoutubePlayer {
     }
 
     public handleStateChange(newState: YT.PlayerState, time?: number) {
-        let currentState = this.player.getPlayerState();
-        if (currentState != newState) {
-            if (time != null) {
-                this.player.seekTo(time, true);
+        if (this.player != null && this.player.getPlayerState) {
+            let currentState = this.player.getPlayerState();
+            if (currentState != newState) {
+                console.log(time);
+                console.log(newState);
+                console.log(currentState);
+
+                if (time != null) {
+                    console.log("Going to " + time);
+                    console.log("Current time: " + this.player.getCurrentTime());
+                    this.player.seekTo(time, true);
+                }
+
+                switch (newState) {
+                    case YT.PlayerState.BUFFERING:
+                    case YT.PlayerState.PLAYING:
+                    case YT.PlayerState.UNSTARTED:
+                        console.log(`Play video at ${time}`);
+                        this.player.playVideo();
+                        break;
+                    case YT.PlayerState.PAUSED:
+                        console.log(`Pause video at ${time}`);
+                        this.player.pauseVideo();
+                        break;
+                    case YT.PlayerState.ENDED:
+                        console.log('Video ended');
+                        break;
+                    default:
+                        break;
+                };
             }
-            switch (newState) {
-                case YT.PlayerState.BUFFERING:
-                case YT.PlayerState.PLAYING:
-                    console.log(`Play video at ${time}`);
-                    this.player.playVideo();
-                    break;
-                case YT.PlayerState.PAUSED:
-                    console.log(`Pause video at ${time}`);
-                    this.player.pauseVideo();
-                    break;
-                case YT.PlayerState.ENDED:
-                    console.log('Video ended');
-                    break;
-                default:
-                    break;
-            };
         }
     }
 

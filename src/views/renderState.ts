@@ -30,7 +30,7 @@ export function render(state: ComponentState, dispatch: Dispatch): void {
     }
 
     //Only redraw the whole view when there is a new url, not when video state is updated
-    if (state.videoState == null || state.player.videoId == null) {
+    if (state.videoState == null || state.player?.videoId == null) {
         //No need to import (and maintain) an entire component library and its customs for this small app...
         //All of the states are cleanly defined
         var emptyNode = rootNode.cloneNode(false);

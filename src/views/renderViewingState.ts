@@ -8,10 +8,14 @@ export function renderViewingState(state: ComponentState, dispatch: ((msg: Compo
     let urlParts = state.youtubeUrl.split('=');
     let videoId = urlParts[1];
 
-    state.player.setVideoId(videoId);
+    if (state.player != null) {
+        state.player.setVideoId(videoId);
 
-    let iframe = state.player.getPlayer();
-    iframe.classList.add('overlay');
+        let iframe = state.player.getPlayer();
+        iframe.classList.add('overlay');
+        return iframe;
+    }
 
-    return iframe;
+    let emptyNode = viewingRoot.cloneNode(false) as HTMLElement;
+    return emptyNode;
 }
