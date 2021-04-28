@@ -52,7 +52,8 @@ module Kosy.Integration.Youtube {
         private onYouTubeIframeAPIReady() {
             console.log('Youtube api is ready');
             this.isApiReady = true;
-            this.player = new YoutubePlayer(window.origin, '', this.initializer.clientUuid == this.currentClient.clientUuid, (cm) => this.processComponentMessage(cm));
+            console.log(this.state.time);
+            this.player = new YoutubePlayer(window.origin, '', this.initializer.clientUuid == this.currentClient.clientUuid, (cm) => this.processComponentMessage(cm), this.state.time);
         }
 
         public setState(newState: AppState) {

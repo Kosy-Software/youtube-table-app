@@ -9,7 +9,7 @@ export class YoutubePlayer {
     private isHost: boolean;
     private origin: string;
 
-    public constructor(origin: string, videoId: string, isHost: boolean, dispatchFun: ((msg: ComponentMessage) => any)) {
+    public constructor(origin: string, videoId: string, isHost: boolean, dispatchFun: ((msg: ComponentMessage) => any), time?: number) {
         this.dispatch = dispatchFun;
         this.isHost = isHost;
         this.origin = origin;
@@ -31,6 +31,7 @@ export class YoutubePlayer {
                 modestbranding: 1,
                 showinfo: 0,
                 autohide: this.isHost ? 0 : 1,
+                start: time,
             },
         });
     }
@@ -45,6 +46,13 @@ export class YoutubePlayer {
             iframe.classList.add('remove-click');
         }
         return iframe;
+    }
+
+    public getCurrentState(): YT.PlayerState {
+        if (this.player != null && this.player.getPlayerState) {
+            return this.player.getPlayerState();
+        }
+        return null;
     }
 
     private loadVideo() {
@@ -72,6 +80,7 @@ export class YoutubePlayer {
                     case YT.PlayerState.BUFFERING:
                     case YT.PlayerState.PLAYING:
                     case YT.PlayerState.UNSTARTED:
+                    case YT.PlayerState.CUED:
                         console.log(`Play video at ${time}`);
                         this.player.playVideo();
                         break;
