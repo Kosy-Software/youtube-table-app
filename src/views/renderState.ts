@@ -20,9 +20,6 @@ export function render(state: ComponentState, dispatch: Dispatch): void {
             state.player.handleStateChange(state.videoState, state.time);
         }
     } else {
-        let viewingRoot = document.querySelector("#viewing") as HTMLTemplateElement;
-        viewingRoot.hidden = true;
-
         if (state.currentClient.clientUuid == state.initializer.clientUuid) {
             renderView = renderPickingState;
         } else {
