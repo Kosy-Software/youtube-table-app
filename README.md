@@ -1,8 +1,5 @@
-# google-drive-table-app
-Table app for Google Drive integration
-
-## Alias localhost
-Since google doesn't like people running their API's on localhost (don't ask me why...), create an alias to localhost:
+# youtube-table-app
+Table app for Youtube integration
 
 ## Debugging tool
 
