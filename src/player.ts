@@ -23,8 +23,6 @@ export class YoutubePlayer {
             },
             playerVars: {
                 enablejsapi: 1,
-                controls: this.isHost ? 1 : 0,
-                disablekb: this.isHost ? 0 : 1,
                 origin: this.origin,
                 fs: 1,
                 rel: 0,
@@ -38,6 +36,11 @@ export class YoutubePlayer {
 
     public setVideoId(videoId: string) {
         this.videoId = videoId;
+    }
+
+    public setHost() {
+        let iframe = document.querySelector("#viewing") as HTMLIFrameElement;
+        iframe.classList.remove('remove-click');
     }
 
     public getPlayer(): HTMLIFrameElement {

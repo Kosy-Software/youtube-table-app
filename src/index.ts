@@ -20,7 +20,7 @@ module Kosy.Integration.Youtube {
             onClientHasJoined: (client) => this.onClientHasJoined(client),
             onClientHasLeft: (clientUuid) => this.onClientHasLeft(clientUuid),
             onReceiveMessageAsClient: (message) => this.processMessage(message),
-            onReceiveMessageAsHost: (message) => message,
+            onReceiveMessageAsHost: (message) => this.processMessageAsHost(message),
             onRequestState: () => this.getState(),
             onProvideState: (newState: AppState) => this.setState(newState)
         })
@@ -69,8 +69,12 @@ module Kosy.Integration.Youtube {
         }
 
         public onClientHasLeft(clientUuid: string) {
-            if (clientUuid === this.initializer.clientUuid && !this.state.youtubeUrl) {
-                this.kosyApi.stopApp();
+            if (clientUuid === this.initializer.clientUuid) {
+                if (!this.state.youtubeUrl) {
+                    this.kosyApi.stopApp();
+                } else {
+                    this.kosyApi.relayMessage({ type: 'assign-new-host' });
+                }
             }
         }
 
@@ -99,6 +103,20 @@ module Kosy.Integration.Youtube {
                     }
                     break;
             }
+        }
+
+        public processMessageAsHost(message: AppMessage): AppMessage {
+            console.log("Received message as host: " + this.currentClient.clientName + " " + message.type);
+            switch (message.type) {
+                case "assign-new-host":
+                    this.player.setHost();
+                    this.renderComponent();
+                    break;
+                default:
+                    return message;
+            }
+
+            return null;
         }
 
         private processComponentMessage(message: ComponentMessage) {
