@@ -52,7 +52,7 @@ module Kosy.Integration.Youtube {
 
         private onYouTubeIframeAPIReady() {
             this.isApiReady = true;
-            this.player = new YoutubePlayer(window.origin, '', this.initializer.clientUuid == this.currentClient.clientUuid, (cm) => this.processComponentMessage(cm), this.state.time);
+            this.player = new YoutubePlayer('', this.initializer.clientUuid == this.currentClient.clientUuid, (cm) => this.processComponentMessage(cm), this.state.time);
         }
 
         public setState(newState: AppState) {
@@ -106,10 +106,8 @@ module Kosy.Integration.Youtube {
         }
 
         public processMessageAsHost(message: AppMessage): AppMessage {
-            console.log("Received message as host: " + this.currentClient.clientName + " " + message.type);
             switch (message.type) {
                 case "assign-new-host":
-                    this.player.setHost();
                     this.renderComponent();
                     break;
                 default:
