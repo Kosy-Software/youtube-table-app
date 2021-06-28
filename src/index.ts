@@ -10,7 +10,7 @@ import { YoutubePlayer } from './player';
 
 module Kosy.Integration.Youtube {
     export class App {
-        private state: AppState = { youtubeUrl: null, videoState: null };
+        private state: AppState = { youtubeUrl: null, videoState: null, startPlayingVideo: false };
         private initializer: ClientInfo;
         private currentClient: ClientInfo;
         private player: YoutubePlayer;
@@ -30,6 +30,7 @@ module Kosy.Integration.Youtube {
             this.initializer = initialInfo.clients[initialInfo.initializerClientUuid];
             this.currentClient = initialInfo.clients[initialInfo.currentClientUuid];
             this.state = initialInfo.currentAppState ?? this.state;
+            this.state.startPlayingVideo = false;
             this.isApiReady = false;
             this.setupPlayerScript();
             this.renderComponent();
@@ -110,6 +111,9 @@ module Kosy.Integration.Youtube {
                 case "assign-new-host":
                     this.renderComponent();
                     break;
+                case "receive-youtube-url":
+                    this.state.startPlayingVideo = true;
+                    return message;
                 default:
                     return message;
             }
@@ -130,6 +134,10 @@ module Kosy.Integration.Youtube {
                     //Notify all other clients that the youtube video state has changed
                     this.kosyApi.relayMessage({ type: "receive-youtube-video-state", payload: message.payload });
                     break;
+                case "youtube-start-playing":
+                    this.state.startPlayingVideo = true;
+                    this.renderComponent();
+                    break;
                 default:
                     break;
             }
@@ -144,6 +152,7 @@ module Kosy.Integration.Youtube {
                 currentClient: this.currentClient,
                 initializer: this.initializer,
                 player: this.player,
+                startPlayingVideo: this.state.startPlayingVideo,
             }, (message) => this.processComponentMessage(message));
         }
 

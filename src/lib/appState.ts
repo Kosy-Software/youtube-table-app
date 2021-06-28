@@ -6,6 +6,7 @@ export interface AppState {
     youtubeUrl?: string;
     videoState?: YT.PlayerState;
     time?: number;
+    startPlayingVideo: boolean;
 }
 
 export interface ComponentState extends AppState {
