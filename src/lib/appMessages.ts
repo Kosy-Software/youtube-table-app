@@ -18,15 +18,11 @@ export interface AssignNewHost {
 
 /// Internal component messages
 export type ComponentMessage =
-    | YoutubeUrlHasChanged | YoutubeVideoStateChanged | CloseIntegration | YoutubeStartPlaying
+    | YoutubeUrlHasChanged | YoutubeVideoStateChanged | CloseIntegration
 
 export interface YoutubeUrlHasChanged {
     type: "youtube-url-changed";
     payload: string;
-}
-
-export interface YoutubeStartPlaying {
-    type: "youtube-start-playing";
 }
 
 export interface CloseIntegration {

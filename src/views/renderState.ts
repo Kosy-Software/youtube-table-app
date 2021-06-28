@@ -12,12 +12,12 @@ export function render(state: ComponentState, dispatch: Dispatch): void {
     let rootNode = document.getElementById("root");
     let videoPlayer = rootNode.firstChild as HTMLIFrameElement;
 
-    if (state?.youtubeUrl && state?.startPlayingVideo) {
+    if (state?.youtubeUrl) {
         renderView = renderViewingState;
 
         if (state.videoState != null && videoPlayer != null) {
             videoPlayer.hidden = false;
-            state.player?.handleStateChange(state.videoState, state.time);
+            state.player.handleStateChange(state.videoState, state.time);
         }
     } else {
         if (state.currentClient.clientUuid == state.initializer.clientUuid) {
