@@ -8,13 +8,13 @@ export function renderViewingState(state: ComponentState, dispatch: ((msg: Compo
     let videoId = urlParts[1];
 
     if (state.player != null) {
-        state.player.setVideoId(videoId);
-
-        let iframe = state.player.getPlayer();
-        iframe.classList.add('overlay');
-        return iframe;
+        let container = document.createElement("div");
+        state.player.setVideoId(videoId).then(async () => {
+            let iframe = await state.player.getIframe();
+            container.appendChild(iframe);
+        });
+        return container;
     }
-
     let emptyNode = viewingRoot.cloneNode(false) as HTMLElement;
     return emptyNode;
 }

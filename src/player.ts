@@ -1,106 +1,114 @@
 import { ComponentMessage } from './lib/appMessages';
+import { AppState } from './lib/appState';
 /// <reference types="@types/youtube" />
 
 export class YoutubePlayer {
-    private player: YT.Player;
-    public videoId: string;
-    private dispatch: ((msg: ComponentMessage) => any);
     private interval: number;
-    private isHost: boolean;
-    private time?: number;
-
-    public constructor(videoId: string, isHost: boolean, dispatchFun: ((msg: ComponentMessage) => any), time?: number) {
-        this.dispatch = dispatchFun;
-        this.isHost = isHost;
-        this.time = time;
-
-        this.player = new YT.Player('viewing', {
-            height: `0px`,
-            width: `0px`,
-            videoId: videoId,
-            events: {
-                onReady: () => this.onPlayerReady(),
-            },
-            playerVars: {
-                enablejsapi: 1,
-                origin: 'https://youtube.com',
-                fs: 1,
-                rel: 0,
-                modestbranding: 1,
-                showinfo: 0,
-                autohide: this.isHost ? 0 : 1,
-                start: time,
-            },
-        });
-    }
-
-    public setVideoId(videoId: string) {
+    private playerPromise: Promise<YT.Player>;
+    
+    public constructor (public videoId: string, private isHost: boolean, private dispatch: ((msg: ComponentMessage) => any), private appState: AppState) {}
+ 
+    private gettingCurrentStateAndTime = false;
+    public async setVideoId(videoId: string) {
         this.videoId = videoId;
-    }
 
+        this.playerPromise = new Promise((resolve, reject) => {
+            let player = new YT.Player('viewing', {
+                height: `1px`,
+                width: `1px`,
+                videoId: videoId,
+                events: {
+                    onReady: () => { resolve(player) }
+                },
+                playerVars: {
+                    enablejsapi: 1,
+                    origin: window.location.host,
+                    fs: 1,
+                    rel: 0,
+                    modestbranding: 1,
+                    showinfo: 0,
+                    start: this.appState.time,
+                    controls: this.isHost ? 1 : 0
+                },
+            });
+        });
 
-    public getPlayer(): HTMLIFrameElement {
-        let iframe = this.player.getIframe();
-        return iframe;
-    }
-
-    public getCurrentState(): YT.PlayerState {
-        if (this.player != null && this.player.getPlayerState) {
-            return this.player.getPlayerState();
-        }
-        return null;
-    }
-
-    private loadVideo() {
-        if (this.videoId != null && this.videoId != "") {
-            this.player.loadVideoById(this.videoId, 0, 'large');
-            this.player.setSize(window.innerWidth, window.innerHeight);
-        }
-    }
-
-    public handleStateChange(newState: YT.PlayerState, time?: number) {
-        if (this.player != null && this.player.getPlayerState) {
-            let currentState = this.player.getPlayerState();
-            if (currentState != newState) {
-                if (time != null) {
-                    this.player.seekTo(time, true);
+        this.playerPromise.then((player) => {
+            this.loadVideo(player, this.appState.time);
+            setTimeout(() => {
+                player.mute()
+                this.handleStateChange(this.appState.videoState, this.appState.time);
+                if (this.isHost) {
+                    this.interval = window.setInterval(() => {
+                        if (!this.gettingCurrentStateAndTime) {
+                            this.gettingCurrentStateAndTime = true;
+                            this.getCurrentStateAndTime(player); 
+                            this.gettingCurrentStateAndTime = false;
+                        }
+                    }, 500)
                 }
-                switch (newState) {
-                    case YT.PlayerState.PLAYING:
-                    case YT.PlayerState.UNSTARTED:
-                    case YT.PlayerState.CUED:
-                        this.player.playVideo();
-                        break;
-                    case YT.PlayerState.PAUSED:
-                        this.player.pauseVideo();
-                        break;
-                    case YT.PlayerState.ENDED:
-                        console.log('Video ended');
-                        break;
-                    default:
-                        break;
-                };
+            }, 1000);
+        });
+
+        return this.playerPromise;
+    }
+
+    public async getIframe() {
+        return (await this.playerPromise).getIframe();
+    }
+
+    public async getCurrentState() {
+        return (await this.playerPromise).getPlayerState();
+    }
+
+    public async getCurrentTime() {
+        return (await this.playerPromise).getCurrentTime();
+    }
+
+    private loadVideo(player: YT.Player, time: number) {
+        if (this.videoId != null && this.videoId != "") {
+            player.loadVideoById(this.videoId, time ?? 0, "large");
+            player.setSize(window.innerWidth, window.innerHeight);
+        }
+    }
+
+    public async handleStateChange(newState?: YT.PlayerState, time?: number) {
+        if (this.playerPromise) {
+            let player = await this.playerPromise;
+            player.seekTo(time ?? 0, true);
+            switch (newState ?? YT.PlayerState.UNSTARTED) {
+                case YT.PlayerState.PLAYING:
+                case YT.PlayerState.UNSTARTED:
+                case YT.PlayerState.CUED:
+                    player.playVideo();
+                    break;
+                case YT.PlayerState.PAUSED:
+                    player.pauseVideo();
+                    break;
+                case YT.PlayerState.ENDED:
+                    console.log('Video ended');
+                    break;
+                default:
+                    break;
             }
         }
     }
 
-    private onPlayerReady() {
-        this.player.mute()
-        this.player.seekTo(this.time, true);
-        if (this.videoId != null) {
-            this.loadVideo();
-            if (this.isHost) {
-                this.interval = window.setInterval(() => { this.getCurrentStateAndTime(); }, 500)
+    private previousSyncTime: Date = new Date();
+    private async getCurrentStateAndTime(player: YT.Player) {
+        let currentState = player.getPlayerState();
+        let currentTime = player.getCurrentTime();
+        let oldState = this.appState.videoState;
+        let oldTime = this.appState.time;
+        
+        this.appState.videoState = currentState;
+        this.appState.time = currentTime;
+        if (oldState != currentState || Math.abs(currentTime - oldTime) > 2 || (new Date().valueOf() - this.previousSyncTime.valueOf()) > 10000) {
+            this.previousSyncTime = new Date();
+            this.dispatch({ type: "youtube-video-state-changed", payload: { state: currentState, time: currentTime } });
+            if (currentState == YT.PlayerState.ENDED && this.interval != null) {
+                clearInterval(this.interval)
             }
-        }
-    }
-
-    private getCurrentStateAndTime() {
-        let state = this.player.getPlayerState();
-        let currentTime = this.player.getCurrentTime();
-        this.dispatch({ type: "youtube-video-state-changed", payload: { state: state, time: currentTime } });
-        if (state == YT.PlayerState.ENDED && this.interval != null) {
-            clearInterval(this.interval)
         }
     }
 }
