@@ -5,7 +5,7 @@ import { AppState } from './lib/appState';
 export class YoutubePlayer {
     private interval: number;
     private playerPromise: Promise<YT.Player>;
-    
+
     public constructor (public videoId: string, private isHost: boolean, private dispatch: ((msg: ComponentMessage) => any), private appState: AppState) {}
  
     private gettingCurrentStateAndTime = false;
@@ -14,15 +14,14 @@ export class YoutubePlayer {
 
         this.playerPromise = new Promise((resolve, reject) => {
             let player = new YT.Player('viewing', {
-                height: `1px`,
-                width: `1px`,
+                width: window.innerWidth,
+                height: window.innerHeight,
                 videoId: videoId,
                 events: {
                     onReady: () => { resolve(player) }
                 },
                 playerVars: {
                     enablejsapi: 1,
-                    origin: window.location.host,
                     fs: 1,
                     rel: 0,
                     modestbranding: 1,
@@ -33,10 +32,11 @@ export class YoutubePlayer {
         });
 
         this.playerPromise.then((player) => {
-            this.loadVideo(player, this.appState.time);
+            player.loadVideoById(this.videoId, null, "large");
+            //This timeout is necessary
+            //New clients joining will otherwise get a race condition between our app and youtube, somehow...
             setTimeout(() => {
-                player.mute()
-                this.handleStateChange(this.appState.videoState, this.appState.time);
+                player.mute();
                 if (this.isHost) {
                     this.interval = window.setInterval(() => {
                         if (!this.gettingCurrentStateAndTime) {
@@ -45,6 +45,8 @@ export class YoutubePlayer {
                             this.gettingCurrentStateAndTime = false;
                         }
                     }, 500)
+                } else {
+                    this.handleStateChange(this.appState.videoState, this.appState.time + 1);
                 }
             }, 1000);
         });
@@ -62,13 +64,6 @@ export class YoutubePlayer {
 
     public async getCurrentTime() {
         return (await this.playerPromise).getCurrentTime();
-    }
-
-    private loadVideo(player: YT.Player, time: number) {
-        if (this.videoId != null && this.videoId != "") {
-            player.loadVideoById(this.videoId, time ?? 0, "large");
-            player.setSize(window.innerWidth, window.innerHeight);
-        }
     }
 
     public async handleStateChange(newState?: YT.PlayerState, time?: number) {
