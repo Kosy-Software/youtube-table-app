@@ -28,7 +28,6 @@ export class YoutubePlayer {
                     modestbranding: 1,
                     showinfo: 0,
                     start: this.appState.time,
-                    controls: this.isHost ? 1 : 0
                 },
             });
         });
