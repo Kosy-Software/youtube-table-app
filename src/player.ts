@@ -5,12 +5,14 @@ import { AppState } from './lib/appState';
 export class YoutubePlayer {
     private interval: number;
     private playerPromise: Promise<YT.Player>;
+    private userHasInteractedWithVideo: boolean;
 
     public constructor (public videoId: string, private isHost: boolean, private dispatch: ((msg: ComponentMessage) => any), private appState: AppState) {}
  
     private gettingCurrentStateAndTime = false;
     public async setVideoId(videoId: string) {
         this.videoId = videoId;
+        this.userHasInteractedWithVideo = false;
 
         this.playerPromise = new Promise((resolve, reject) => {
             let player = new YT.Player('viewing', {
@@ -18,40 +20,36 @@ export class YoutubePlayer {
                 height: window.innerHeight,
                 videoId: videoId,
                 events: {
-                    onReady: () => { resolve(player) }
+                    onReady: () => { resolve(player) },
+                    onStateChange: (state) => { this.onStateChange(player) }
                 },
                 playerVars: {
                     enablejsapi: 1,
                     fs: 1,
                     rel: 0,
                     modestbranding: 1,
-                    showinfo: 0,
+                    showinfo: 1,
                     start: this.appState.time,
+                    controls: this.isHost ? 1 : 0
                 },
             });
         });
-
-        this.playerPromise.then((player) => {
-            player.loadVideoById(this.videoId, null, "large");
-            //This timeout is necessary
-            //New clients joining will otherwise get a race condition between our app and youtube, somehow...
-            setTimeout(() => {
-                player.mute();
-                if (this.isHost) {
-                    this.interval = window.setInterval(() => {
-                        if (!this.gettingCurrentStateAndTime) {
-                            this.gettingCurrentStateAndTime = true;
-                            this.getCurrentStateAndTime(player); 
-                            this.gettingCurrentStateAndTime = false;
-                        }
-                    }, 500)
-                } else {
-                    this.handleStateChange(this.appState.videoState, this.appState.time + 1);
-                }
-            }, 1000);
-        });
-
         return this.playerPromise;
+    }
+
+    private onStateChange(player: YT.Player) {
+        if (this.isHost) {
+            this.interval = window.setInterval(() => {
+                if (!this.gettingCurrentStateAndTime) {
+                    this.gettingCurrentStateAndTime = true;
+                    this.getCurrentStateAndTime(player); 
+                    this.gettingCurrentStateAndTime = false;
+                }
+            }, 500)
+        } else if (!this.userHasInteractedWithVideo) {
+            this.userHasInteractedWithVideo = true;
+            this.dispatch({ type: "request-youtube-video-state" });
+        }
     }
 
     public async getIframe() {
@@ -67,7 +65,7 @@ export class YoutubePlayer {
     }
 
     public async handleStateChange(newState?: YT.PlayerState, time?: number) {
-        if (this.playerPromise) {
+        if (this.playerPromise && this.userHasInteractedWithVideo) {
             let player = await this.playerPromise;
             player.seekTo(time ?? 0, true);
             switch (newState ?? YT.PlayerState.UNSTARTED) {

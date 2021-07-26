@@ -1,6 +1,10 @@
 /// Messages that are relayed to all of the clients
 export type AppMessage =
-    | ReceiveYoutubeUrl | ReceiveYoutubeVideoState | CloseIntegration | AssignNewHost
+    | ReceiveYoutubeUrl 
+    | ReceiveYoutubeVideoState 
+    | RequestYoutubeVideoState
+    | CloseIntegration 
+    | AssignNewHost
 
 export interface ReceiveYoutubeUrl {
     type: "receive-youtube-url";
@@ -18,7 +22,10 @@ export interface AssignNewHost {
 
 /// Internal component messages
 export type ComponentMessage =
-    | YoutubeUrlHasChanged | YoutubeVideoStateChanged | CloseIntegration
+    | YoutubeUrlHasChanged 
+    | YoutubeVideoStateChanged 
+    | RequestYoutubeVideoState
+    | CloseIntegration
 
 export interface YoutubeUrlHasChanged {
     type: "youtube-url-changed";
@@ -27,6 +34,10 @@ export interface YoutubeUrlHasChanged {
 
 export interface CloseIntegration {
     type: "close-integration";
+}
+
+export interface RequestYoutubeVideoState {
+    type: "request-youtube-video-state";
 }
 
 export interface YoutubeVideoStateChanged {

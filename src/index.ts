@@ -102,6 +102,11 @@ module Kosy.Integration.Youtube {
                 case "assign-new-host":
                     this.renderComponent();
                     break;
+                case "request-youtube-video-state":
+                    return { 
+                        type: "receive-youtube-video-state", 
+                        payload: { state: this.state.videoState, time: this.state.time } 
+                    };
                 default:
                     return message;
             }
@@ -122,6 +127,8 @@ module Kosy.Integration.Youtube {
                     //Notify all other clients that the youtube video state has changed
                     this.kosyApi.relayMessage({ type: "receive-youtube-video-state", payload: message.payload });
                     break;
+                case "request-youtube-video-state":
+                    this.kosyApi.relayMessage(message);
                 default:
                     break;
             }
