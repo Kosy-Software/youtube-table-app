@@ -64,7 +64,7 @@ export class YoutubePlayer {
         return (await this.playerPromise).getCurrentTime();
     }
 
-    public async handleStateChange(newState?: YT.PlayerState, time?: number) {
+    public async handleStateChange(newState?: YT.PlayerState, newTime?: number) {
         if (this.playerPromise && this.userHasInteractedWithVideo) {
             let player = await this.playerPromise;
             switch (newState ?? YT.PlayerState.UNSTARTED) {
@@ -82,7 +82,13 @@ export class YoutubePlayer {
                 default:
                     break;
             }
-            player.seekTo(time ?? 0, true);
+            let currentTime = player.getCurrentTime();
+            if (currentTime && newTime && Math.abs(currentTime - newTime) <= 1) {
+                //Allow for about 1 second time difference to account for lag
+                return;
+            } else {
+                player.seekTo(newTime ?? 0, true);
+            }
         }
     }
 
