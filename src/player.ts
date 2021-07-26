@@ -67,7 +67,6 @@ export class YoutubePlayer {
     public async handleStateChange(newState?: YT.PlayerState, time?: number) {
         if (this.playerPromise && this.userHasInteractedWithVideo) {
             let player = await this.playerPromise;
-            player.seekTo(time ?? 0, true);
             switch (newState ?? YT.PlayerState.UNSTARTED) {
                 case YT.PlayerState.PLAYING:
                 case YT.PlayerState.UNSTARTED:
@@ -83,6 +82,7 @@ export class YoutubePlayer {
                 default:
                     break;
             }
+            player.seekTo(time ?? 0, true);
         }
     }
 
