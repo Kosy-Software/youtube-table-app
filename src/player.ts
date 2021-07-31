@@ -38,7 +38,8 @@ export class YoutubePlayer {
     }
 
     private onStateChange(player: YT.Player) {
-        if (this.isHost) {
+        if (this.isHost && !this.userHasInteractedWithVideo) {
+            this.userHasInteractedWithVideo = true;
             this.interval = window.setInterval(() => {
                 if (!this.gettingCurrentStateAndTime) {
                     this.gettingCurrentStateAndTime = true;
@@ -101,7 +102,7 @@ export class YoutubePlayer {
         
         this.appState.videoState = currentState;
         this.appState.time = currentTime;
-        if (oldState != currentState || Math.abs(currentTime - oldTime) > 2 || (new Date().valueOf() - this.previousSyncTime.valueOf()) > 10000) {
+        if (oldState != currentState || Math.abs(currentTime - oldTime) > 2 || (new Date().valueOf() - this.previousSyncTime.valueOf()) > 5000) {
             this.previousSyncTime = new Date();
             this.dispatch({ type: "youtube-video-state-changed", payload: { state: currentState, time: currentTime } });
             if (currentState == YT.PlayerState.ENDED && this.interval != null) {

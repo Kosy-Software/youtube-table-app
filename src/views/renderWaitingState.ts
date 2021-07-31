@@ -6,6 +6,10 @@ export function renderWaitingState(state: ComponentState, dispatch: ((msg: Compo
     let waitingRoot = document.querySelector("#waiting") as HTMLTemplateElement;
     let waitingElement = waitingRoot.content.firstElementChild.cloneNode(true) as HTMLElement;
     let label = waitingElement.querySelector("label") as HTMLElement;
-    label.innerHTML = `${state.initializer.clientName} is picking a video to share`;
+    if (state.youtubeUrl) {
+        label.innerHTML = `Video is being synchronized with ${state.initializer.clientName}`;
+    } else {
+        label.innerHTML = `${state.initializer.clientName} is picking a video to share`;
+    }
     return waitingElement;
 }

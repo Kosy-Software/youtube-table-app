@@ -12,14 +12,11 @@ export function render(state: ComponentState, dispatch: Dispatch): void {
     let rootNode = document.getElementById("root");
     let redrawView = state.videoState == null || state.player.videoId == null;
 
-    if (state?.youtubeUrl) {
-        renderView = renderViewingState;
-    } else {
-        if (state.currentClient.clientUuid == state.initializer.clientUuid) {
-            renderView = renderPickingState;
-        } else {
-            renderView = renderWaitingState;
-        }
+    switch (state.viewState) {
+        case "picking": renderView = renderPickingState; break;
+        case "viewing": renderView = renderViewingState; break;
+        case "waiting": renderView = renderWaitingState; break;
+        default: break;
     }
 
     //Only redraw the whole view when there is a new url, not when video state is updated

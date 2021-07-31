@@ -1,7 +1,7 @@
 import './styles/style.scss';
 
 import { AppMessage, ComponentMessage } from './lib/appMessages';
-import { AppState } from './lib/appState';
+import { AppState, ViewState } from './lib/appState';
 import { render } from './views/renderState';
 import { isValidYoutubeUrl } from './lib/validation';
 import { ClientInfo } from '@kosy/kosy-app-api/types';
@@ -14,6 +14,7 @@ module Kosy.Integration.Youtube {
         private initializer: ClientInfo;
         private currentClient: ClientInfo;
         private player: YoutubePlayer;
+        private viewState: ViewState;
 
         private kosyApi = new KosyApi<AppState, AppMessage, AppMessage>({
             onClientHasLeft: (clientUuid) => this.onClientHasLeft(clientUuid),
@@ -30,6 +31,7 @@ module Kosy.Integration.Youtube {
             this.currentClient = initialInfo.clients[initialInfo.currentClientUuid];
             this.state = initialInfo.currentAppState ?? this.state;
             this.player = new YoutubePlayer(null, this.initializer.clientUuid == this.currentClient.clientUuid, (cm) => this.processComponentMessage(cm), this.state);
+            this.viewState = initialInfo.currentClientUuid == initialInfo.initializerClientUuid ? "picking" : "waiting";
             this.renderComponent();
 
             window.addEventListener("message", (event: MessageEvent<ComponentMessage>) => {
@@ -77,11 +79,15 @@ module Kosy.Integration.Youtube {
                 case "receive-youtube-url":
                     if (isValidYoutubeUrl(message.payload)) {
                         this.state.youtubeUrl = `${message.payload}`;
+                        if (this.currentClient.clientUuid === this.initializer.clientUuid) {
+                            this.viewState = "viewing";
+                        }
                         this.renderComponent();
                     }
                     break;
                 case "receive-youtube-video-state":
-                    if (this.currentClient.clientUuid !== this.initializer.clientUuid) {
+                    if (this.currentClient.clientUuid !== this.initializer.clientUuid && (this.viewState === "viewing" || message.payload.state == YT.PlayerState.PLAYING)) {
+                        this.viewState = "viewing";
                         this.player.handleStateChange(message.payload.state, message.payload.time);
                         this.state.videoState = message.payload.state;
                         this.state.time = message.payload.time;
@@ -143,6 +149,7 @@ module Kosy.Integration.Youtube {
                 currentClient: this.currentClient,
                 initializer: this.initializer,
                 player: this.player,
+                viewState: this.viewState
             }, (message) => this.processComponentMessage(message));
         }
 
