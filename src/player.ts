@@ -20,7 +20,11 @@ export class YoutubePlayer {
                 height: window.innerHeight,
                 videoId: videoId,
                 events: {
-                    onReady: () => { resolve(player) },
+                    onReady: async () => {
+                        resolve(player); 
+                        let iframe = await this.getIframe();
+                        iframe.classList.add('overlay');
+                    },
                     onStateChange: (state) => { this.onStateChange(player) }
                 },
                 playerVars: {
