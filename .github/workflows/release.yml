@@ -50,3 +50,4 @@ jobs:
         env:
           DISTRIBUTION: ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }}
           PATHS: '/*'
+          AWS_REGION: 'us-west-1'
